@@ -2,7 +2,7 @@
 
 Claude Code のログを読んで、トークンを何に使っているか、なぜ上限に当たりやすいかを診断するスキルです。結果は証拠つきの改善計画として出ます。Claude は計画を出したところで止まり、あなたが承認するまで何も変更しません。
 
-試用版です。使ってみた感想は、このリポジトリの [Issues](../../issues/new/choose) に書いてください。
+試用版です。使ってみた感想は、このリポジトリの [Issues](https://github.com/naenote/tokdiet/issues/new/choose) に書いてください。
 
 ## 何がわかるか
 - モデル別の使用量、キャッシュ率、ツール別、プロジェクト別（匿名の P1..Pn）。
@@ -100,7 +100,7 @@ grep -nE "socket|urllib|http\.client|subprocess" skills/tokdiet/scripts/*.py
 - 無効化の手順は、公式ドキュメントで確認できた範囲だけ案内します。確認できないものは「公式未確認・手順不明」と出ます。
 
 ## 感想の送り先
-[GitHub Issues](../../issues/new/choose) の「試用フィードバック」から送ってください。役に立った点、わかりにくかった点、外れていた点が知りたいです。
+[GitHub Issues](https://github.com/naenote/tokdiet/issues/new/choose) の「試用フィードバック」から送ってください。役に立った点、わかりにくかった点、外れていた点が知りたいです。
 
 貼ってよいのは、匿名の `report.md` の一部だけです。`action-brief.md` と `baseline.json` は貼らないでください。
 

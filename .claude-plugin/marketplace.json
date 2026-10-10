@@ -13,5 +13,8 @@
         "name": "naenote"
       }
     }
-  ]
+  ],
+  "metadata": {
+    "description": "Claude Code のログからトークン消費の原因を診断するスキル"
+  }
 }
