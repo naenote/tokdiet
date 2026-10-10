@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+baseline.json
+action-brief.md
+report.*
