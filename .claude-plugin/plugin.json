@@ -1,0 +1,11 @@
+{
+  "name": "tokdiet",
+  "description": "Claude Code のローカルログから、トークンを何に使っているかと上限に当たりやすい原因を診断し、承認つきの改善計画と前後比較まで進めるスキル。ネットワークは使わない。",
+  "version": "0.1.0",
+  "author": {
+    "name": "naenote"
+  },
+  "homepage": "https://github.com/naenote/tokdiet",
+  "repository": "https://github.com/naenote/tokdiet",
+  "license": "MIT"
+}

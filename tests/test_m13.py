@@ -1,7 +1,7 @@
 """M1.3: 意図的モデル設定の除外／規範語節の履歴系除外／重い順上位5（提案なし含む）／leakcheck のプロジェクト単体対応。合成データのみ。"""
 import os, sys, tempfile, unittest, unittest.mock, json
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(HERE)); sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(os.path.dirname(HERE), 'skills', 'tokdiet', 'scripts')); sys.path.insert(0, HERE)
 import tokdiet, actionbrief, leakcheck
 from synth2 import J, rec, asst
 

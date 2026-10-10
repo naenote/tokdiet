@@ -1,6 +1,6 @@
 import os, stat, sys, tempfile, unittest, unittest.mock, json
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(HERE)); sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(os.path.dirname(HERE), 'skills', 'tokdiet', 'scripts')); sys.path.insert(0, HERE)
 import tokdiet, actionbrief, synth
 
 

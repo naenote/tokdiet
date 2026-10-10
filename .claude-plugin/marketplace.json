@@ -1,0 +1,17 @@
+{
+  "name": "tokdiet",
+  "owner": {
+    "name": "naenote"
+  },
+  "plugins": [
+    {
+      "name": "tokdiet",
+      "source": "./",
+      "description": "Claude Code のローカルログからトークン消費の原因を診断し、承認つきの改善計画と前後比較まで進める。",
+      "version": "0.1.0",
+      "author": {
+        "name": "naenote"
+      }
+    }
+  ]
+}

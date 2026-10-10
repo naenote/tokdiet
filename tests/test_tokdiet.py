@@ -1,7 +1,7 @@
 import os, re, subprocess, sys, tempfile, unittest
 HERE = os.path.dirname(os.path.abspath(__file__))
-PROTO = os.path.dirname(HERE)
-sys.path.insert(0, PROTO); sys.path.insert(0, HERE)
+PROTO = os.path.dirname(HERE); SCRIPTS = os.path.join(PROTO, 'skills', 'tokdiet', 'scripts')
+sys.path.insert(0, SCRIPTS); sys.path.insert(0, HERE)
 import tokdiet, leakcheck, synth
 
 
@@ -52,13 +52,13 @@ class T(unittest.TestCase):
 
     def test_leakcheck_cli_exit_code(self):
         bad = os.path.join(self.tmp, "bad2.md"); open(bad, "w").write("see /Users/bob/work/proj\n")
-        r = subprocess.run([sys.executable, os.path.join(PROTO, "leakcheck.py"), bad], capture_output=True)
+        r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "leakcheck.py"), bad], capture_output=True)
         self.assertEqual(r.returncode, 1)
-        r = subprocess.run([sys.executable, os.path.join(PROTO, "leakcheck.py"), self.md, "--logs", self.root], capture_output=True)
+        r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "leakcheck.py"), self.md, "--logs", self.root], capture_output=True)
         self.assertEqual(r.returncode, 0)
 
     def test_no_network_code(self):
-        src = open(os.path.join(PROTO, "tokdiet.py"), encoding="utf-8").read()
+        src = open(os.path.join(SCRIPTS, "tokdiet.py"), encoding="utf-8").read()
         code = "\n".join(l for l in src.splitlines() if not l.lstrip().startswith("#"))
         for w in ("socket", "urllib", "http.client", "requests", "subprocess", "urlopen"):
             self.assertIsNone(re.search(r"\b(import|from)\s+%s\b|\b%s\." % (w, w), code), w)
