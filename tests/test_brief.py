@@ -142,7 +142,7 @@ class B(unittest.TestCase):
             txt = actionbrief.render(L, self.A_, C, actionbrief.items(C))
         self.assertIn("定義 `model: opus`／実使用 claude-sonnet-5×1", txt)
         self.assertNotIn("意図した使い分け", txt)
-        self.assertRegex(self.text, r"\| my-agent \| 1 \| /publish-all×1 \|")      # 種別×起動元
+        self.assertRegex(self.text, r"\| my-agent \| 1 \| /deploy-all×1 \|")      # 種別×起動元
         self.assertIn("モデル差分", self.text); self.assertIn("該当なし（定義に model 指定があり", self.text)
         self.assertIn("該当なし（5 回以上", self.text)                               # Bash 閾値未満
         self.assertIn("該当なし（結果の平均が", self.text)                           # MCP

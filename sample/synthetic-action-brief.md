@@ -64,8 +64,8 @@
 
 | 種別 | 起動 | 起動元の内訳（回数） |
 |---|---|---|
-| my-agent | 1 | /publish-all×1 |
-| ranged-agent | 1 | /publish-all×1 |
+| my-agent | 1 | /deploy-all×1 |
+| ranged-agent | 1 | /deploy-all×1 |
 
 ### エージェント定義の節別サイズ（起動のたびに載る量が多い順・事実のみ）
 
