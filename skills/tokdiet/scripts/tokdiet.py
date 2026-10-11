@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""tokdiet M0 -- Claude Code ログの原因別「無駄」診断（ローカル完結・標準ライブラリのみ）
+"""tokdiet -- Claude Code ログの原因別「無駄」診断（ローカル完結・標準ライブラリのみ）
 
 ~/.claude/projects/**/*.jsonl を読み、集計値だけのレポート
 (Markdown + 自己完結HTML) を出力する。プロンプト本文・パス・リポジトリ名は出力しない。
@@ -10,7 +10,7 @@ import argparse, bisect, hashlib, html, json, os, re, secrets, statistics, sys
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 
-VERSION = "M0.1"
+VERSION = "0.1.0"
 BUILTIN_TOOLS = {"Read", "Edit", "Write", "Bash", "Grep", "Glob", "Task", "Agent", "WebFetch",
                  "WebSearch", "TodoWrite", "Skill", "NotebookEdit", "AskUserQuestion", "ToolSearch",
                  "MultiEdit", "BashOutput", "KillShell", "TaskStop", "Monitor", "SendMessage"}
