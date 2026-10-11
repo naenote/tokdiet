@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """tokdiet M0 -- Claude Code ログの原因別「無駄」診断（ローカル完結・標準ライブラリのみ）
 
-ネットワークアクセスなし。~/.claude/projects/**/*.jsonl を読み、集計値だけのレポート
+~/.claude/projects/**/*.jsonl を読み、集計値だけのレポート
 (Markdown + 自己完結HTML) を出力する。プロンプト本文・パス・リポジトリ名は出力しない。
 
 使い方: python3 tokdiet.py [--root ~/.claude/projects] --out <出力ディレクトリ>
@@ -15,8 +15,14 @@ BUILTIN_TOOLS = {"Read", "Edit", "Write", "Bash", "Grep", "Glob", "Task", "Agent
                  "WebSearch", "TodoWrite", "Skill", "NotebookEdit", "AskUserQuestion", "ToolSearch",
                  "MultiEdit", "BashOutput", "KillShell", "TaskStop", "Monitor", "SendMessage"}
 AGENT_TOOLS = {"Task", "Agent"}
-# 概算の API 単価 ($/100万トークン, 入力, 出力)。同梱の固定値でネットワーク取得はしない。要・公式で再確認。
-PRICES = {"opus": (5.0, 25.0), "sonnet": (3.0, 15.0), "haiku": (1.0, 5.0)}
+# API 単価は同梱しない。実行時に --prices FILE で渡された値だけを使う。
+# 形式: {"<モデルID>": {"input": 数, "output": 数, "cache_read": 数(任意)}}  単位は $/100万トークン。
+# 単価は世代ごとに違うため、モデルID単位で持つ（Opus/Sonnet/Haiku の系列では引かない）。
+# cache_read を省くと入力単価の0.1倍、キャッシュ作成は入力単価の1.25倍(5分)/2倍(1時間)で計算する。
+# 渡されていないモデルは「単価不明」になり、金額に含めない。
+FAMILIES = ("opus", "sonnet", "haiku")
+PRICES = {}
+PRICE_SOURCE = "単価は実行時に公式から取得して渡した値。渡さなかった場合は金額なし"
 BIG_RESULT_CHARS = 40_000       # 約1万トークン超のツール結果を「巨大」とみなす（推定）
 CTX_DROP_RATIO = 0.5            # compaction 推定: 文脈が直前の半分未満に落ちる
 CTX_DROP_MIN = 60_000           # かつ直前が6万トークン以上
@@ -41,7 +47,7 @@ def norm(s):
 
 def family(model):
     m = (model or "").lower()
-    for f in PRICES:
+    for f in FAMILIES:
         if f in m:
             return f
     return None
@@ -237,13 +243,40 @@ def load(root):
 
 
 # ---------------------------------------------------------------- 集計
+def price_of(model):
+    """モデルIDの単価。完全一致か、末尾の日付(-YYYYMMDD)を除いた一致だけを使う。"""
+    m = model or ""
+    return PRICES.get(m) or PRICES.get(re.sub(r"-\d{8}$", "", m))
+
+
 def cost_of(r):
-    f = family(r["model"])
-    if not f:
+    P = price_of(r["model"])
+    if not P:
         return None
-    pi, po = PRICES[f]
+    pi, po = P["input"], P["output"]
     cw5 = r["cw"] - r["cw1h"]
-    return (r["inp"] * pi + r["out"] * po + r["cr"] * pi * 0.1 + cw5 * pi * 1.25 + r["cw1h"] * pi * 2.0) / 1e6
+    return (r["inp"] * pi + r["out"] * po + r["cr"] * P.get("cache_read", pi * 0.1)
+            + cw5 * pi * 1.25 + r["cw1h"] * pi * 2.0) / 1e6
+
+
+def load_prices(path):
+    """--prices の JSON を検証して PRICES に入れる。不正なら理由を出して終了する（黙って0円にしない）。"""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            d = json.load(fh)
+    except (OSError, ValueError) as e:
+        sys.exit("価格ファイルを読めません: %s" % e.__class__.__name__)
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and v >= 0
+    out = {}
+    for mid, v in (d.items() if isinstance(d, dict) else []):
+        ok = (isinstance(v, dict) and num(v.get("input")) and num(v.get("output"))
+              and ("cache_read" not in v or num(v["cache_read"])))
+        if not ok:
+            sys.exit("価格ファイルの形式が不正です（%s）。値は {\"input\": 数, \"output\": 数, \"cache_read\": 数(任意)}" % safe_model(mid))
+        out[mid] = v
+    if not out:
+        sys.exit("価格ファイルに有効なモデルがありません")
+    PRICES.clear(); PRICES.update(out)
 
 
 def pct(a, b):
@@ -453,8 +486,8 @@ def build(A):
     B.append(("table", ["モデル", "リクエスト", "入力", "出力", "キャッシュ読取", "キャッシュ作成", "キャッシュ率%", "API単価推計($)"],
               [[m["model"], fmt(m["req"]), fmt(m["inp"]), fmt(m["out"]), fmt(m["cr"]), fmt(m["cw"]), m["cache"],
                 ("%.2f" % m["cost"]) if m["cost"] is not None else "単価不明"] for m in A["models"]]))
-    B.append(("note", "金額はAPI単価での推計・契約により異なります（同梱の概算単価を使用・ネットワーク取得なし・公式価格での再確認が必要）。"
-              "定額プラン（Pro・Max・Team席）では円の削減ではなく「枠の拡大」（同じ枠でより多く使える）と読み替えてください。〔根拠: 推定〕"
+    B.append(("note", "金額はAPI単価での推計・契約により異なります（%s）。" % PRICE_SOURCE
+              + "定額プラン（Pro・Max・Team席）では円の削減ではなく「枠の拡大」（同じ枠でより多く使える）と読み替えてください。〔根拠: 推定〕"
               + ("（単価不明モデル %d リクエストは金額に含まず）" % A["unpriced_req"] if A["unpriced_req"] else "")))
     B.append(("table", ["匿名ID", "セッション", "リクエスト", "トークン(文脈+出力)", "キャッシュ率%"],
               [[p["id"], fmt(p["sessions"]), fmt(p["req"]), fmt(p["tok"]), p["cache"]] for p in A["by_project"][:15]]))
@@ -514,7 +547,7 @@ def build(A):
         % (lim["events"], lim["days"], ", ".join(fmt(x) for x in lim["before_limit"][:10]) or "該当なし", fmt(lim["max_5h"])),
         "MCPツール定義の個別サイズ・指示ファイルのどの記述が不要か: 測れません（文字数の総量のみ）。",
         "他の端末・Web版の利用: ローカルログに無いものは含まれません。",
-        "金額: 同梱の概算単価による推計であり、契約・割引・為替により異なります。",
+        "金額: 実行時に渡された単価による推計であり、契約・割引・為替により異なります。",
     ]))
 
     B.append(("h2", "4. 管理者向け1枚（転送用）"))
@@ -600,11 +633,21 @@ def run(root, out, brief=False, snapshot=None, compare=None):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--root", default=os.path.expanduser("~/.claude/projects"))
-    ap.add_argument("--out", required=True, help="出力先（ログやリポジトリの外を推奨）")
+    ap.add_argument("--out", required="--list-models" not in sys.argv, help="出力先（ログやリポジトリの外を推奨）")
     ap.add_argument("--no-brief", action="store_true", help="ローカル詳細版 action-brief.md を作らない（匿名レポートのみ）")
     ap.add_argument("--snapshot", help="集計のベースラインJSONを保存（0600・パスを含むローカル専用）")
+    ap.add_argument("--prices", help="モデルID別の単価JSON（公式から取得した値を渡す。なければ金額は出さない）")
+    ap.add_argument("--list-models", action="store_true", help="ログに出てくるモデルIDを一覧して終了（単価を取る対象の確認用）")
     ap.add_argument("--compare", help="ベースラインJSONとの差分を action-brief.md 末尾に出す")
     a = ap.parse_args()
+    if a.list_models:
+        if not os.path.isdir(a.root):
+            sys.exit("ログディレクトリが見つかりません: 指定を確認してください")
+        for m in sorted({safe_model(r["model"]) for r in load(a.root)["reqs"].values() if r["model"]}):
+            print(m)
+        return
+    if a.prices:
+        load_prices(a.prices)
     if not os.path.isdir(a.root):
         sys.exit("ログディレクトリが見つかりません: 指定を確認してください")
     mp, hp, A = run(a.root, a.out, brief=not a.no_brief, snapshot=a.snapshot, compare=a.compare)

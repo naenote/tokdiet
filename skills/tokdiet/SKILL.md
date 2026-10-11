@@ -1,6 +1,6 @@
 ---
 name: tokdiet
-description: Claude Code のローカルログ（~/.claude/projects）を読み、トークンの使い道と上限に当たりやすい原因を診断して、証拠つきの改善計画を出す。「トークンを減らしたい」「上限に当たる」「何が重いか調べて」「トークン診断」「token diet」と言われたときに使う。計画を出したところで止まり、ユーザーの承認なしにファイルを変更しない。変更後は前後比較で効果を測る。ネットワークは使わない。
+description: Claude Code のローカルログ（~/.claude/projects）を読み、トークンの使い道と上限に当たりやすい原因を診断して、証拠つきの改善計画を出す。「トークンを減らしたい」「上限に当たる」「何が重いか調べて」「トークン診断」「token diet」と言われたときに使う。計画を出したところで止まり、ユーザーの承認なしにファイルを変更しない。変更後は前後比較で効果を測る。
 ---
 
 # tokdiet
@@ -14,8 +14,24 @@ description: Claude Code のローカルログ（~/.claude/projects）を読み�
 ### 1. 測る
 出力先はリポジトリとログの外にします（例: `~/tokdiet-out`）。
 
+**単価を用意します。** このスキルは価格表を持ちません。単価はモデルごとに違うので、ログに出てくるモデルだけを調べます。
+
+1. `python3 <scripts>/tokdiet.py --list-models` で、ログに出てくるモデル ID を一覧します（`--root` を使うときは同じものを付けます）。
+2. `claude-api` スキルを呼び出して、そのモデル ID の API 単価（入力、出力、キャッシュ読み取り。単位は 100 万トークンあたりのドル）を読み取ります。
+3. 次の形で `~/tokdiet-out/prices.json` に書きます。
+
 ```
-python3 <scripts>/tokdiet.py --out ~/tokdiet-out --snapshot ~/tokdiet-out/baseline.json
+{"<モデルID>": {"input": <数>, "output": <数>, "cache_read": <数>}}
+```
+
+- 値は `claude-api` スキルが示したものだけを使います。記憶や推測で埋めません。スキルの表に載っていないモデル（古い世代など）は書かず、書けなかったモデルをユーザーに伝えます（そのモデルの金額は「単価不明」になります）。Opus や Sonnet という系列名だけで、別の世代の単価を流用しません。
+- `cache_read` は、スキルが金額を示したモデルだけ書きます（示された倍率が 0.1 倍でないモデルがあります）。書かなければ入力単価の 0.1 倍で計算します。キャッシュの作成（1.25 倍、2 倍）はスクリプトが固定で計算します。
+- スキルの価格表は「キャッシュした日付」付きです。日付が古いと思うときは、スキルが案内する公式の料金ページで確かめ、確かめられなかったことを伝えます。
+- `claude-api` スキルが使えない、または単価が示されないときは、`--prices` を付けずに進めます。金額なしのレポートになります。
+- `prices.json` に入るのは公開の単価だけで、ログの内容は含まれません。
+
+```
+python3 <scripts>/tokdiet.py --out ~/tokdiet-out --prices ~/tokdiet-out/prices.json --snapshot ~/tokdiet-out/baseline.json
 ```
 
 - 既定の入力は `~/.claude/projects` です。特定のプロジェクトだけ見るなら `--root ~/.claude/projects/<proj>` を付けます。
@@ -48,7 +64,7 @@ python3 <scripts>/tokdiet.py --out ~/tokdiet-out --snapshot ~/tokdiet-out/baseli
 承認された項目だけを変更します。変更の前に手順 1 の `--snapshot` で基準を取っていることを確かめます。数日から 2 週間ほど使ったあとで、次を実行します。
 
 ```
-python3 <scripts>/tokdiet.py --out ~/tokdiet-out --compare ~/tokdiet-out/baseline.json
+python3 <scripts>/tokdiet.py --out ~/tokdiet-out --prices ~/tokdiet-out/prices.json --compare ~/tokdiet-out/baseline.json
 ```
 
 `action-brief.md` の末尾の「前後比較」を読み、狙った指標が下がったかを見ます。利用量が前後で違うときは、セッションあたりの指標で比べます。下がっていなければ、効かなかったと正直に伝えます。
@@ -65,5 +81,5 @@ python3 <scripts>/tokdiet.py --out ~/tokdiet-out --compare ~/tokdiet-out/baselin
 - 削減効果の %、円、トークン数を言わない。出せるのは実測した占有量だけ。金額は API 単価での概算で、定額プランでは枠の拡大として説明する。
 - 「データ不足」のときは提案しない。
 - 品質は測れない。「要検証」の項目は、自分のログで品質が同じかを確かめるまで効果を言えない。同じ入力 3 件を変更前後で流して比べる手順（`action-brief.md` の該当項目に書いてある）を案内する。「品質に影響しない」とは言わない。
-- ネットワークを使わない。価格表も取得しない。
+- 価格表をスクリプトやリポジトリに書き込まない。単価は実行のたびに `claude-api` スキルから取り、`prices.json` として渡す。
 - 最後に、ユーザーへ `report.html` / `report.md` の場所と、レポートの「測れなかった項目」を伝える。

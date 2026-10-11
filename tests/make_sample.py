@@ -3,6 +3,9 @@ import os, sys, tempfile, shutil
 HERE = os.path.dirname(os.path.abspath(__file__)); PROTO = os.path.dirname(HERE); SCRIPTS = os.path.join(PROTO, 'skills', 'tokdiet', 'scripts')
 sys.path.insert(0, SCRIPTS); sys.path.insert(0, HERE)
 import tokdiet, synth
+# サンプルの単価は説明用の仮の値（実際の価格ではない）。レポートの注記にもそう書く。
+tokdiet.PRICES.update({"claude-sonnet-5": {"input": 3.0, "output": 15.0}})
+tokdiet.PRICE_SOURCE = "このサンプルの単価は説明用の仮の値で、実際の価格ではありません"
 tmp = tempfile.mkdtemp()
 root = synth.build(os.path.join(tmp, "projects"))
 md, html, _ = tokdiet.run(root, tmp, brief=True)
