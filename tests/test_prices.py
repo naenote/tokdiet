@@ -1,6 +1,7 @@
 import json, os, subprocess, sys, tempfile, unittest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "skills", "tokdiet", "scripts"))
 import tokdiet
+sys.path.insert(0, os.path.dirname(__file__))
 
 SCRIPT = os.path.join(os.path.dirname(__file__), "..", "skills", "tokdiet", "scripts", "tokdiet.py")
 
@@ -46,6 +47,19 @@ class PricesTest(unittest.TestCase):
     def test_no_bundled_price_table(self):
         src = open(SCRIPT, encoding="utf-8").read()
         self.assertIn("PRICES = {}", src)
+
+
+class IsolatedModeTest(unittest.TestCase):
+    def test_runs_under_python_I(self):
+        import synth
+        tmp = tempfile.mkdtemp()
+        root = synth.build(os.path.join(tmp, "projects"))
+        out = os.path.join(tmp, "out")
+        r = subprocess.run([sys.executable, "-I", SCRIPT, "--root", root, "--out", out, "--snapshot", os.path.join(out, "baseline.json")],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertTrue(os.path.exists(os.path.join(out, "action-brief.md")))
+        self.assertTrue(os.path.exists(os.path.join(out, "baseline.json")))
 
 
 if __name__ == "__main__":

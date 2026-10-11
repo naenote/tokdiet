@@ -620,12 +620,17 @@ def run(root, out, brief=False, snapshot=None, compare=None):
         L["all_calls"] = scan_skill_calls(default_root)       # --root で絞ったとき、全ログでの呼出数も併記するため
     A = analyze(L)
     B, rid = build(A)
+    if brief or snapshot or compare:
+        # python3 -I（隔離モード）ではスクリプトのディレクトリが sys.path に入らないので、明示的に足す
+        here = os.path.dirname(os.path.abspath(__file__))
+        if here not in sys.path:
+            sys.path.append(here)
+        import actionbrief   # ローカル詳細版（パス等を含む。共有しない）
     os.makedirs(out, exist_ok=True)
     mp, hp = os.path.join(out, "report.md"), os.path.join(out, "report.html")
     open(mp, "w", encoding="utf-8").write(to_md(B))
     open(hp, "w", encoding="utf-8").write(to_html(B))
     if brief or snapshot or compare:
-        import actionbrief   # ローカル詳細版（パス等を含む。共有しない）
         actionbrief.write(L, A, out, snapshot=snapshot, compare=compare)
     return mp, hp, A
 
