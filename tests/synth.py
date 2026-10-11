@@ -40,7 +40,7 @@ def build(root):
     d = os.path.join(root, SECRET_DIR)
     os.makedirs(os.path.join(d, "sess-0001", "subagents"))
     main = [
-        {"type": "user", "timestamp": "2026-01-01T00:00:00Z", "message": {"role": "user", "content": "<command-name>/publish-all</command-name>"}},
+        {"type": "user", "timestamp": "2026-01-01T00:00:00Z", "message": {"role": "user", "content": "<command-name>/deploy-all</command-name>"}},
         {"type": "user", "timestamp": "2026-01-01T00:00:00Z", "message": {"role": "user", "content": SECRET_PROMPT}},
         {"type": "attachment", "timestamp": "2026-01-01T00:00:00Z", "attachment": {"type": "instructions",
          "files": [{"path": INSTR_PATH, "type": "Project", "content": INSTR_BODY}]}},

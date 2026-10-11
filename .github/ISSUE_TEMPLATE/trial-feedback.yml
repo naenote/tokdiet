@@ -1,0 +1,37 @@
+name: 試用フィードバック
+description: tokdiet を試した感想を教えてください
+title: "[試用] "
+labels: ["trial-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **貼ってはいけないもの:** `action-brief.md` と `baseline.json` は、パス、コマンド、スキル名が入っているので貼らないでください。貼ってよいのは、匿名の `report.md` の一部だけです。貼る前に、`leakcheck.py` で検査してください。
+  - type: textarea
+    id: useful
+    attributes:
+      label: 役に立った点
+      description: 実際に変更した、または変更しようと思った項目があれば、どんな項目だったか教えてください。
+  - type: textarea
+    id: confusing
+    attributes:
+      label: わかりにくかった点
+      description: 説明、表示、手順のうち、どこで迷いましたか。
+  - type: textarea
+    id: wrong
+    attributes:
+      label: 外れていた点
+      description: 実態と合わなかった指摘や、数字がおかしかった項目を、貼ってよい範囲で教えてください。
+  - type: textarea
+    id: env
+    attributes:
+      label: 環境の概要
+      description: OS、Python のバージョン、Claude Code のバージョン、ログのおおよその量（セッション数など）を書いてください。パスやプロジェクト名は書かないでください。
+      placeholder: "例: macOS 15、Python 3.12、Claude Code 2.x、セッション約 40 件"
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 確認
+      options:
+        - label: "`action-brief.md` と `baseline.json` の内容を貼っていません"
+          required: true

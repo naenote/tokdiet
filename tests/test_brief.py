@@ -1,6 +1,6 @@
 import os, stat, sys, tempfile, unittest, unittest.mock, json
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(HERE)); sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(os.path.dirname(HERE), 'skills', 'tokdiet', 'scripts')); sys.path.insert(0, HERE)
 import tokdiet, actionbrief, synth
 
 
@@ -142,7 +142,7 @@ class B(unittest.TestCase):
             txt = actionbrief.render(L, self.A_, C, actionbrief.items(C))
         self.assertIn("定義 `model: opus`／実使用 claude-sonnet-5×1", txt)
         self.assertNotIn("意図した使い分け", txt)
-        self.assertRegex(self.text, r"\| my-agent \| 1 \| /publish-all×1 \|")      # 種別×起動元
+        self.assertRegex(self.text, r"\| my-agent \| 1 \| /deploy-all×1 \|")      # 種別×起動元
         self.assertIn("モデル差分", self.text); self.assertIn("該当なし（定義に model 指定があり", self.text)
         self.assertIn("該当なし（5 回以上", self.text)                               # Bash 閾値未満
         self.assertIn("該当なし（結果の平均が", self.text)                           # MCP

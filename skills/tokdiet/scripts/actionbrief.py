@@ -1,7 +1,7 @@
 """actionbrief -- ローカル詳細版 action-brief.md（LOCAL ONLY・共有しない）を作る。
 
 tokdiet.py の load()/analyze() の結果を使い、実在のスキル名・エージェント名・ファイルパスと実測の重さを載せる。
-ネットワークなし。出力は 0600。シークレット様文字列はマスクする（完全ではない。README参照）。
+出力は 0600。シークレット様文字列はマスクする（完全ではない。README参照）。
 匿名の管理者転送用レポート(report.md/html)とは別系統で、leakcheck の対象ではない。
 """
 import json, os, re, shlex, statistics
